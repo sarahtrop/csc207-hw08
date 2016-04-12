@@ -1,0 +1,1 @@
+of Precision	Dexterity	11	15of Regrowth	Regeneration	5	5of the Tiger	Health	21	30of the Titan	Strength	16	20of the Leech	Lifesteal	4	5

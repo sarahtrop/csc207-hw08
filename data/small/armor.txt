@@ -1,0 +1,1 @@
+Quilted Armor	8	11Leather Armor	14	17Buckler	4	6Embossed Plate	282	303Sun Spirit	98	147Fury Visor	105	150Sacred Rondache	85	109Mage Plate	225	261Diadem	50	60

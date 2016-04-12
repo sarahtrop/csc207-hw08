@@ -1,0 +1,1 @@
+Glorious	Enhanced Defense %	41	50Brutal	Enhanced Damage %	41	50Dragon's	Mana	31	40Emerald	Poison Resist %	31	40Glowing	Light Radius	2	2
