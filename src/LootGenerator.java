@@ -33,13 +33,28 @@ public class LootGenerator {
 	}
 	
 	/**
+	 * Extracts the treasure data from the array of monster statistics from monstats.txt.
+	 * @param monsterStatsArray	an array of strings
+	 * @return					a string
+	 */
+	public static String fetchTreasureClass(String[] monsterStatsArray) {
+		String[] initialStats = new String[4];
+		String treasureString = new String();
+		System.arraycopy(monsterStatsArray, 3, initialStats, 0, monsterStatsArray.length);
+		for (int i = 0; i < initialStats.length; i++) {
+			treasureString = treasureString.concat(initialStats[i]);
+		}
+		return treasureString;
+	}
+	
+	/**
 	 * Finds the treasure to drop
 	 * @param statsString	a string
 	 * @param treasureClass	an ArrayList of ArrayLists of strings
 	 * @return treasure		a string
 	 * @throws FileNotFoundException
 	 */
-	public static String fetchTreasureClass(String statsString, ArrayList<ArrayList<String>> treasureClass)throws FileNotFoundException {
+	public static String generateBaseItem(String statsString, ArrayList<ArrayList<String>> treasureClass) throws FileNotFoundException  {
 		int index = 0;
 		for (int i = 0; i < treasureClass.size(); i++) {
 			if (statsString.equals(treasureClass.get(i).get(0))) {
@@ -54,11 +69,18 @@ public class LootGenerator {
 		if (treasure.contains("armo")) {
 			return treasure;
 		} else {
-			return fetchTreasureClass(treasure, treasureClass);
+			return generateBaseItem(treasure, treasureClass);
 		}
 	}
 	
-	public static int generateBaseItem(String treasure, String size) throws FileNotFoundException {
+	/**
+	 * Returns the defense stats of the treasure dropped by the monster
+	 * @param treasure		a string
+	 * @param size			a string
+	 * @return defenseValue	an integer
+	 * @throws FileNotFoundException
+	 */
+	public static int generateBaseStats(String treasure, String size) throws FileNotFoundException {
 		Scanner dataIn;
 		int numArmor = 0;
 		if (size.equals("large")) {
@@ -83,10 +105,6 @@ public class LootGenerator {
 		
 		dataIn.close();
 		return defenseValue;
-	}
-	
-	public static void generateBaseStats() {
-		
 	}
 	
 	public static void generateAffix() {
@@ -124,34 +142,19 @@ public class LootGenerator {
 		return treasureClass;
 	}
 	
-	/**
-	 * Extracts the treasure data from the array of monster statistics from monstats.txt.
-	 * @param monsterStatsArray	an array of strings
-	 * @return					a string
-	 */
-	public static String buildTreasureString(String[] monsterStatsArray) {
-		String[] initialStats = new String[4];
-		String treasureString = new String();
-		System.arraycopy(monsterStatsArray, 3, initialStats, 0, monsterStatsArray.length);
-		for (int i = 0; i < initialStats.length; i++) {
-			treasureString = treasureString.concat(initialStats[i]);
-		}
-		return treasureString;
-	}
-	
 	public static void main (String[] args) throws FileNotFoundException {
 		boolean playing = true;
 		Scanner in = new Scanner(System.in);
 		String[] monsterStats = pickMonster("small");
 		String monsterName = monsterStats[0];
-		String treasure = fetchTreasureClass(buildTreasureString(monsterStats), buildTreasureClass("small"));
+		String treasure = generateBaseItem(fetchTreasureClass(monsterStats), buildTreasureClass("small"));
 		
 		while(playing) {
 			System.out.println("Fighting " + monsterName + "...");
 			System.out.println("You have slain " + monsterName + "!");
 			System.out.println(monsterName + " dropped:");
 			System.out.println(treasure);
-			System.out.println("Defense: " + generateBaseItem(treasure, "small"));
+			System.out.println("Defense: " + generateBaseStats(treasure, "small"));
 			// Other print statements 
 			
 			System.out.print("Fight again [y/n]?");
