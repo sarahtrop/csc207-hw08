@@ -80,7 +80,7 @@ public class LootGenerator {
 	 * @return defenseValue	an integer
 	 * @throws FileNotFoundException
 	 */
-	public static int generateBaseStats(String treasure, String size) throws FileNotFoundException {
+	public static String[] generateBaseStats(String treasure, String size) throws FileNotFoundException {
 		Scanner dataIn;
 		int numArmor = 0;
 		if (size.equals("large")) {
@@ -99,16 +99,82 @@ public class LootGenerator {
 				armorStats = dataIn.nextLine();
 			}
 		}
+		dataIn.close();
+		return armor;
+	}
+	
+	public static int getDefenseValue(String[] armor) {
 		Random r = new Random();
 		int defenseValue = r.nextInt(Integer.parseInt(armor[2]) - 
-				Integer.parseInt(armor[1])) + Integer.parseInt(armor[1]);
+				Integer.parseInt(armor[1]) + 1) + Integer.parseInt(armor[1]);
 		
-		dataIn.close();
 		return defenseValue;
 	}
 	
-	public static void generateAffix() {
+	/**
+	 * 
+	 * @param item
+	 * @param size
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+	public static String[] generateAffix(String[] item, String size) throws FileNotFoundException {
+		Scanner prefix;
+		Scanner suffix;
+		int numAffix = 0;
+		String[] ret = new String[2];
+		ret[0] = item[0];
 		
+		if (size.equals("large")) {
+			prefix = new Scanner(new File("data/large/MagicPrefix.txt"));
+			suffix = new Scanner(new File("data/large/MagicSuffix.txt"));
+			numAffix = 372;
+		} else {
+			prefix = new Scanner(new File("data/small/MagicPrefix.txt"));
+			suffix = new Scanner(new File("data/small/MagicSuffix.txt"));
+			numAffix = 5;
+		}
+		
+		Random r = new Random();
+		// 0 = neither, 1 = prefix, 2 = suffix, 3 = both
+		int affixes = r.nextInt(4);
+		int whichAffix = r.nextInt(numAffix);
+		
+		for (int i = 0; i < numAffix; i++) {
+			if (affixes == 0) { return item; }
+			else if (affixes == 1 || affixes == 3) { 
+				String[] affixArr = findAffix(whichAffix, prefix).split("\t");
+				ret[0] =  affixArr[0] + ret[0];
+				int val = r.nextInt(Integer.parseInt(affixArr[4]) - 
+						Integer.parseInt(affixArr[3]) + 1) + Integer.parseInt(affixArr[3]);
+				ret[1] = val + affixArr[1];
+			}
+			if (affixes == 2 || affixes == 3) {
+				String[] affixArr = findAffix(whichAffix, suffix).split("\t");
+				ret[0] =  ret[0] + affixArr[0];
+				int val = r.nextInt(Integer.parseInt(affixArr[4]) - 
+						Integer.parseInt(affixArr[3]) + 1) + Integer.parseInt(affixArr[3]);
+				ret[1] = val + affixArr[1];
+			}
+			
+		}
+		prefix.close();
+		suffix.close();
+		return ret;
+	}
+	
+	/**
+	 * 
+	 * @param index
+	 * @param in
+	 * @return
+	 */
+	public static String findAffix(int index, Scanner in) {
+		String ret = new String();
+		for (int i = 0; i < index; i++) {
+			ret = in.nextLine();
+		}
+		return ret;
 	}
 	
 	/**
@@ -145,17 +211,21 @@ public class LootGenerator {
 	public static void main (String[] args) throws FileNotFoundException {
 		boolean playing = true;
 		Scanner in = new Scanner(System.in);
-		String[] monsterStats = pickMonster("small");
+		String size = "small";
+		String[] monsterStats = pickMonster(size);
 		String monsterName = monsterStats[0];
-		String treasure = generateBaseItem(fetchTreasureClass(monsterStats), buildTreasureClass("small"));
+		String treasure = generateBaseItem(fetchTreasureClass(monsterStats), buildTreasureClass(size));
+		String[] treasurePlusAffix = generateAffix(generateBaseStats(treasure, size), size);
+		String enhancedTreasure = treasurePlusAffix[0];
+		String extraDefense = treasurePlusAffix[1];
 		
 		while(playing) {
 			System.out.println("Fighting " + monsterName + "...");
 			System.out.println("You have slain " + monsterName + "!");
-			System.out.println(monsterName + " dropped:");
-			System.out.println(treasure);
-			System.out.println("Defense: " + generateBaseStats(treasure, "small"));
-			// Other print statements 
+			System.out.println(monsterName + " dropped:" + "\n");
+			System.out.println(enhancedTreasure);
+			System.out.println("Defense: " + getDefenseValue(generateBaseStats(treasure, size)));
+			System.out.println(extraDefense);
 			
 			System.out.print("Fight again [y/n]?");
 			String answer = in.nextLine();
