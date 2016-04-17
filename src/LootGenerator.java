@@ -23,28 +23,44 @@ public class LootGenerator {
 			for (int i = 0; i < monsterID; i++) {
 				monsterStats = dataIn.nextLine();
 			}
-			monsterStatsArray = monsterStats.split(" ");
+			monsterStatsArray = monsterStats.split("\t");
 		} else {
 			dataIn = new Scanner(new File("data/small/monstats.txt"));
-			monsterStatsArray = dataIn.nextLine().split(" ");
+			monsterStatsArray = dataIn.nextLine().split("\t");
 		}
 		dataIn.close();
 		return monsterStatsArray;
 	}
 	
 	/**
-	 * Extracts the treasure data from the array of monster statistics from monstats.txt.
-	 * @param monsterStatsArray	an array of strings
-	 * @return					a string
+	 * Builds an ArrayList of ArrayLists of strings that holds the treasure class information.
+	 * @param size	a string
+	 * @return		an ArrayList of ArrayLists of strings
+	 * @throws FileNotFoundException
 	 */
-	public static String fetchTreasureClass(String[] monsterStatsArray) {
-		String[] initialStats = new String[4];
-		String treasureString = new String();
-		System.arraycopy(monsterStatsArray, 3, initialStats, 0, monsterStatsArray.length);
-		for (int i = 0; i < initialStats.length; i++) {
-			treasureString = treasureString.concat(initialStats[i]);
+	public static ArrayList<ArrayList<String>> fetchTreasureClass(String size) throws FileNotFoundException {
+		Scanner dataIn;
+		int numTreasures = 0;
+		if (size.equals("large")) {
+			dataIn = new Scanner(new File("data/large/TreasureClassEx.txt"));
+			numTreasures = 68;
+		} else {
+			dataIn = new Scanner(new File("data/small/TreasureClassEx.txt"));
+			numTreasures = 6;
 		}
-		return treasureString;
+		ArrayList<ArrayList<String>> treasureClass = new ArrayList<>();
+		ArrayList<String> lineLst;
+		for (int i = 0; i < numTreasures; i++) {
+			String line = dataIn.nextLine();
+			String[] lineArray = line.split("\t");
+			lineLst = new ArrayList<>();
+			for (int j = 0; j < lineArray.length; j++) {
+				lineLst.add(lineArray[j]);
+			}
+			treasureClass.add(lineLst);
+		}
+		dataIn.close();
+		return treasureClass;
 	}
 	
 	/**
@@ -103,6 +119,12 @@ public class LootGenerator {
 		return armor;
 	}
 	
+	/**
+	 * Finds the value of a string that 
+	 * represents the defense statistics of armor.
+	 * @param armor	an array of strings
+	 * @return		an integer
+	 */
 	public static int getDefenseValue(String[] armor) {
 		Random r = new Random();
 		int defenseValue = r.nextInt(Integer.parseInt(armor[2]) - 
@@ -112,10 +134,10 @@ public class LootGenerator {
 	}
 	
 	/**
-	 * 
-	 * @param item
-	 * @param size
-	 * @return
+	 * Generates prefixes and suffixes for defense and treasure.
+	 * @param item	an array of strings
+	 * @param size	a string
+	 * @return		an array of strings
 	 * @throws FileNotFoundException
 	 */
 	public static String[] generateAffix(String[] item, String size) throws FileNotFoundException {
@@ -164,10 +186,10 @@ public class LootGenerator {
 	}
 	
 	/**
-	 * 
-	 * @param index
-	 * @param in
-	 * @return
+	 * Helper method that finds the appropriate suffix or prefix
+	 * @param index	an integer
+	 * @param in	a scanner
+	 * @return		a string
 	 */
 	public static String findAffix(int index, Scanner in) {
 		String ret = new String();
@@ -177,44 +199,13 @@ public class LootGenerator {
 		return ret;
 	}
 	
-	/**
-	 * Method builds an ArrayList of ArrayLists of strings out of TreasureClassEx.txt.
-	 * @param  size				a string
-	 * @return treasureClass	an ArrayList of ArrayLists of Strings
-	 * @throws FileNotFoundException
-	 */
-	public static ArrayList<ArrayList<String>> buildTreasureClass(String size) throws FileNotFoundException {
-		Scanner dataIn;
-		int numTreasures = 0;
-		if (size.equals("large")) {
-			dataIn = new Scanner(new File("data/large/TreasureClassEx.txt"));
-			numTreasures = 68;
-		} else {
-			dataIn = new Scanner(new File("data/small/TreasureClassEx.txt"));
-			numTreasures = 6;
-		}
-		ArrayList<ArrayList<String>> treasureClass = new ArrayList<>();
-		ArrayList<String> lineLst;
-		for (int i = 0; i < numTreasures; i++) {
-			String line = dataIn.nextLine();
-			String[] lineArray = line.split("\t");
-			lineLst = new ArrayList<>();
-			for (int j = 0; j < lineArray.length; j++) {
-				lineLst.add(lineArray[j]);
-			}
-			treasureClass.add(lineLst);
-		}
-		dataIn.close();
-		return treasureClass;
-	}
-	
 	public static void main (String[] args) throws FileNotFoundException {
 		boolean playing = true;
 		Scanner in = new Scanner(System.in);
 		String size = "small";
 		String[] monsterStats = pickMonster(size);
 		String monsterName = monsterStats[0];
-		String treasure = generateBaseItem(fetchTreasureClass(monsterStats), buildTreasureClass(size));
+		String treasure = generateBaseItem(monsterStats[monsterStats.length - 1], fetchTreasureClass(size));
 		String[] treasurePlusAffix = generateAffix(generateBaseStats(treasure, size), size);
 		String enhancedTreasure = treasurePlusAffix[0];
 		String extraDefense = treasurePlusAffix[1];
