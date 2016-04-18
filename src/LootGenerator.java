@@ -40,17 +40,15 @@ public class LootGenerator {
 	 */
 	public static ArrayList<ArrayList<String>> fetchTreasureClass(String size) throws FileNotFoundException {
 		Scanner dataIn;
-		int numTreasures = 0;
 		if (size.equals("large")) {
 			dataIn = new Scanner(new File("data/large/TreasureClassEx.txt"));
-			numTreasures = 68;
 		} else {
 			dataIn = new Scanner(new File("data/small/TreasureClassEx.txt"));
-			numTreasures = 6;
 		}
+		
 		ArrayList<ArrayList<String>> treasureClass = new ArrayList<>();
 		ArrayList<String> lineLst;
-		for (int i = 0; i < numTreasures; i++) {
+		while (dataIn.hasNextLine()) {
 			String line = dataIn.nextLine();
 			String[] lineArray = line.split("\t");
 			lineLst = new ArrayList<>();
@@ -98,21 +96,19 @@ public class LootGenerator {
 	 */
 	public static String[] generateBaseStats(String treasure, String size) throws FileNotFoundException {
 		Scanner dataIn;
-		int numArmor = 0;
 		if (size.equals("large")) {
 			dataIn = new Scanner(new File("data/large/armor.txt"));
-			numArmor = 68;
 		} else {
 			dataIn = new Scanner(new File("data/small/armor.txt"));
-			numArmor = 6;
 		}
 		
 		String[] armor = new String[3];
-		for (int i = 0; i < numArmor; i++) {
+		while (dataIn.hasNextLine()) {
 			String armorStats = dataIn.nextLine();
 			armor = armorStats.split("\t");
-			if (!treasure.equals(armor[0])) {
-				armorStats = dataIn.nextLine();
+			if (treasure.equals(armor[0])) {
+				dataIn.close();
+				return armor;
 			}
 		}
 		dataIn.close();
@@ -161,22 +157,23 @@ public class LootGenerator {
 		// 0 = neither, 1 = prefix, 2 = suffix, 3 = both
 		int affixes = r.nextInt(4);
 		int whichAffix = r.nextInt(numAffix);
+		String[] affixArr = new String[4];
 		
 		for (int i = 0; i < numAffix; i++) {
 			if (affixes == 0) { return item; }
 			else if (affixes == 1 || affixes == 3) { 
-				String[] affixArr = findAffix(whichAffix, prefix).split("\t");
+				affixArr = findAffix(whichAffix, prefix).split("\t");
 				ret[0] =  affixArr[0] + ret[0];
-				int val = r.nextInt(Integer.parseInt(affixArr[4]) - 
-						Integer.parseInt(affixArr[3]) + 1) + Integer.parseInt(affixArr[3]);
-				ret[1] = val + affixArr[1];
+				int val = r.nextInt(Integer.parseInt(affixArr[3]) - 
+						Integer.parseInt(affixArr[2]) + 1) + Integer.parseInt(affixArr[2]);
+				ret[1] = val + " " + affixArr[1];
 			}
 			if (affixes == 2 || affixes == 3) {
-				String[] affixArr = findAffix(whichAffix, suffix).split("\t");
+				affixArr = findAffix(whichAffix, suffix).split("\t");
 				ret[0] =  ret[0] + affixArr[0];
-				int val = r.nextInt(Integer.parseInt(affixArr[4]) - 
-						Integer.parseInt(affixArr[3]) + 1) + Integer.parseInt(affixArr[3]);
-				ret[1] = val + affixArr[1];
+				int val = r.nextInt(Integer.parseInt(affixArr[3]) - 
+						Integer.parseInt(affixArr[2]) + 1) + Integer.parseInt(affixArr[2]);
+				ret[1] = val +  " " + affixArr[1];
 			}
 			
 		}
@@ -194,7 +191,8 @@ public class LootGenerator {
 	public static String findAffix(int index, Scanner in) {
 		String ret = new String();
 		for (int i = 0; i < index; i++) {
-			ret = in.nextLine();
+			if (in.hasNext()) { ret = in.nextLine(); }
+			else {	return null; }
 		}
 		return ret;
 	}
@@ -206,7 +204,8 @@ public class LootGenerator {
 		String[] monsterStats = pickMonster(size);
 		String monsterName = monsterStats[0];
 		String treasure = generateBaseItem(monsterStats[monsterStats.length - 1], fetchTreasureClass(size));
-		String[] treasurePlusAffix = generateAffix(generateBaseStats(treasure, size), size);
+		String[] baseStats = generateBaseStats(treasure, size);
+		String[] treasurePlusAffix = generateAffix(baseStats, size);
 		String enhancedTreasure = treasurePlusAffix[0];
 		String extraDefense = treasurePlusAffix[1];
 		
@@ -215,7 +214,7 @@ public class LootGenerator {
 			System.out.println("You have slain " + monsterName + "!");
 			System.out.println(monsterName + " dropped:" + "\n");
 			System.out.println(enhancedTreasure);
-			System.out.println("Defense: " + getDefenseValue(generateBaseStats(treasure, size)));
+			System.out.println("Defense: " + getDefenseValue(baseStats));
 			System.out.println(extraDefense);
 			
 			System.out.print("Fight again [y/n]?");
