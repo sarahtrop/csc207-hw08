@@ -68,7 +68,7 @@ public class LootGenerator {
 	 * @return treasure		a string
 	 * @throws FileNotFoundException
 	 */
-	public static String generateBaseItem(String statsString, ArrayList<ArrayList<String>> treasureClass) throws FileNotFoundException  {
+	public static String generateBaseItem(String statsString, ArrayList<ArrayList<String>> treasureClass) {
 		int index = 0;
 		for (int i = 0; i < treasureClass.size(); i++) {
 			if (statsString.equals(treasureClass.get(i).get(0))) {
@@ -81,7 +81,14 @@ public class LootGenerator {
 		String treasure = treasureClass.get(index).get(treasureID);
 		
 		if (treasure.contains("armo")) {
-			return treasure;
+			for (int i = 0; i < treasureClass.size(); i++) {
+				if (treasure.equals(treasureClass.get(i).get(0))) {
+					index = i;
+					break;
+				}
+			}
+			treasureID = r.nextInt(3);
+			return treasureClass.get(index).get(treasureID);
 		} else {
 			return generateBaseItem(treasure, treasureClass);
 		}
