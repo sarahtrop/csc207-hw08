@@ -141,7 +141,6 @@ public class LootGenerator {
 		Scanner suffix;
 		int numAffix = 0;
 		String[] ret = new String[2];
-		ret[0] = item[0];
 		
 		if (size.equals("large")) {
 			prefix = new Scanner(new File("data/large/MagicPrefix.txt"));
@@ -157,28 +156,81 @@ public class LootGenerator {
 		// 0 = neither, 1 = prefix, 2 = suffix, 3 = both
 		int affixes = r.nextInt(4);
 		int whichAffix = r.nextInt(numAffix);
-		String[] affixArr = new String[4];
+		String[] prefixArr = generatePrefix(prefix, whichAffix);
+		String[] suffixArr = generateSuffix(suffix, whichAffix);
 		
 		for (int i = 0; i < numAffix; i++) {
-			if (affixes == 0) { return item; }
-			else if (affixes == 1 || affixes == 3) { 
-				affixArr = findAffix(whichAffix, prefix).split("\t");
-				ret[0] =  affixArr[0] + ret[0];
-				int val = r.nextInt(Integer.parseInt(affixArr[3]) - 
-						Integer.parseInt(affixArr[2]) + 1) + Integer.parseInt(affixArr[2]);
-				ret[1] = val + " " + affixArr[1];
-			}
-			if (affixes == 2 || affixes == 3) {
-				affixArr = findAffix(whichAffix, suffix).split("\t");
-				ret[0] =  ret[0] + affixArr[0];
-				int val = r.nextInt(Integer.parseInt(affixArr[3]) - 
-						Integer.parseInt(affixArr[2]) + 1) + Integer.parseInt(affixArr[2]);
-				ret[1] = val +  " " + affixArr[1];
+			if (affixes == 0) { 
+				prefix.close();
+				suffix.close();
+				return item; 
+			} else if (affixes == 1) {
+				ret[0] = prefixArr[0] + " " + item[0];
+				ret[1] = prefixArr[1] + " " + prefixArr[2];
+			} else if (affixes == 2) {
+				ret[0] = item[0] + " " + suffixArr[0];
+				ret[1] = suffixArr[1] + " " + suffixArr[2];
+			} else if (affixes == 3) {
+				ret[0] = prefixArr[0] + " " + item[0] + " " + suffixArr[0];
+				int val = Integer.parseInt(suffixArr[1]) + Integer.parseInt(prefixArr[1]);
+				ret[1] = val + " " + prefixArr[2];
 			}
 			
 		}
 		prefix.close();
 		suffix.close();
+		return ret;
+	}
+	
+	/**
+	 * Splits up suffix to differentiate between suffix and values. 
+	 * @param in	a scanner
+	 * @param index	an integer
+	 * @return		an array of strings
+	 * @throws FileNotFoundException
+	 */
+	public static String[] generateSuffix(Scanner in, int index) throws FileNotFoundException {
+		Random r = new Random();
+		String[] affixArr = new String[4];
+		String affix;
+		String[] ret = new String[3];
+		
+		affix = findAffix(index, in);
+		
+		if (affix != null) { 
+			affixArr = affix.split("\t");
+			ret[0] =  affixArr[0];
+			int val = r.nextInt(Integer.parseInt(affixArr[affixArr.length - 1]) - 
+				Integer.parseInt(affixArr[affixArr.length - 2]) + 1) + Integer.parseInt(affixArr[affixArr.length - 2]);
+			ret[1] = val + "";
+			ret[2] = affixArr[1];
+		}
+		return ret;
+	}
+	
+	/**
+	 * Splits up suffix to differentiate between prefix and values. 
+	 * @param in	a scanner
+	 * @param index	an integer
+	 * @return		an array of strings
+	 * @throws FileNotFoundException
+	 */
+	public static String[] generatePrefix(Scanner in, int index) throws FileNotFoundException {
+		Random r = new Random();
+		String[] affixArr = new String[4];
+		String affix;
+		String[] ret = new String[3];
+		
+		affix = findAffix(index, in);
+		
+		if (affix != null) { 
+			affixArr = affix.split("\t");
+			ret[0] =  affixArr[0];
+			int val = r.nextInt(Integer.parseInt(affixArr[affixArr.length - 1]) - 
+				Integer.parseInt(affixArr[affixArr.length - 2]) + 1) + Integer.parseInt(affixArr[affixArr.length - 2]);
+			ret[1] = val + "";
+			ret[2] = affixArr[1];
+		}
 		return ret;
 	}
 	
@@ -200,16 +252,16 @@ public class LootGenerator {
 	public static void main (String[] args) throws FileNotFoundException {
 		boolean playing = true;
 		Scanner in = new Scanner(System.in);
-		String size = "small";
-		String[] monsterStats = pickMonster(size);
-		String monsterName = monsterStats[0];
-		String treasure = generateBaseItem(monsterStats[monsterStats.length - 1], fetchTreasureClass(size));
-		String[] baseStats = generateBaseStats(treasure, size);
-		String[] treasurePlusAffix = generateAffix(baseStats, size);
-		String enhancedTreasure = treasurePlusAffix[0];
-		String extraDefense = treasurePlusAffix[1];
-		
+		String size = "large";
 		while(playing) {
+			String[] monsterStats = pickMonster(size);
+			String monsterName = monsterStats[0];
+			String treasure = generateBaseItem(monsterStats[monsterStats.length - 1], fetchTreasureClass(size));
+			String[] baseStats = generateBaseStats(treasure, size);
+			String[] treasurePlusAffix = generateAffix(baseStats, size);
+			String enhancedTreasure = treasurePlusAffix[0];
+			String extraDefense = treasurePlusAffix[1];
+		
 			System.out.println("Fighting " + monsterName + "...");
 			System.out.println("You have slain " + monsterName + "!");
 			System.out.println(monsterName + " dropped:" + "\n");
@@ -217,9 +269,10 @@ public class LootGenerator {
 			System.out.println("Defense: " + getDefenseValue(baseStats));
 			System.out.println(extraDefense);
 			
-			System.out.print("Fight again [y/n]?");
+			System.out.print("Fight again [y/n]? ");
 			String answer = in.nextLine();
 			if (answer.equals("n")) { playing = false; }
+			else { System.out.println("\n"); }
 		}
 		in.close();
 	}
